@@ -1,6 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser
-from .constants import STATUS_CHOICES, PENDING_COMPLETE_DATA, GENDER_CHOICES, NONE
+from .constants import STATUS_CHOICES, PENDING_COMPLETE_DATA, GENDER_CHOICES, NONE, \
+    CLOSET_CHOICES, FIRST_CLOSET
 
 
 class User(AbstractUser):
@@ -20,3 +21,25 @@ class User(AbstractUser):
 
     def __str__(self):
         return "{} {} - {}".format(self.first_name, self.last_name, self.email)
+
+
+class Item(models.Model):
+    """
+    Item model that represents a product in the system.
+    """
+    item_id = models.IntegerField(unique=True)
+    name = models.CharField(max_length=100)
+    description = models.TextField()
+    quantity = models.IntegerField()
+    closet_number = models.CharField(
+        max_length=20,
+        choices=CLOSET_CHOICES,
+        default=FIRST_CLOSET
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return "Name: {} | Quantity: {} | Closet: {}".format(self.name,
+                                                             self.quantity,
+                                                             self.closet_number)

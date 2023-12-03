@@ -7,6 +7,10 @@ MAN = 'MAN'
 WOMAN = 'WOMAN'
 NONE = 'NONE'
 
+# CLOSET_CHOICES VALUES
+FIRST_CLOSET = 1
+SECOND_CLOSET = 2
+
 
 STATUS_CHOICES = (
     (COMPLETE, 'Complete'),
@@ -18,4 +22,10 @@ GENDER_CHOICES = (
     (MAN, 'Man'),
     (WOMAN, 'Woman'),
     (NONE, 'None'),
+)
+
+
+CLOSET_CHOICES = (
+    (FIRST_CLOSET, 1),
+    (SECOND_CLOSET, 2),
 )

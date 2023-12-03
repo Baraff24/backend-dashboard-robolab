@@ -1,13 +1,15 @@
+import openpyxl
 from django.utils.decorators import method_decorator
-from rest_framework import status
+from rest_framework import status, generics, filters
+from rest_framework.parsers import MultiPartParser, FormParser
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from .constants import PENDING_COMPLETE_DATA, COMPLETE
+from .constants import PENDING_COMPLETE_DATA, COMPLETE, FIRST_CLOSET
 from .functions import is_active
-from .models import User
-from .serializers import UserSerializer, CompleteProfileSerializer
+from .models import User, Item
+from .serializers import UserSerializer, CompleteProfileSerializer, ItemSerializer, ExcelFileSerializer
 
 
 class UsersListAPI(APIView):
@@ -96,3 +98,76 @@ class CompleteProfileAPI(APIView):
             return Response({"The User: {}, has already completed his profile"
                             .format(user)},
                             status=status.HTTP_400_BAD_REQUEST)
+
+
+class ItemsListAPI(generics.ListAPIView):
+    """
+    List of all balls drawn.
+    """
+    serializer_class = ItemSerializer
+    queryset = Item.objects.all()
+    filter_backends = [filters.SearchFilter]
+    search_fields = ['name', 'closet_number']
+
+
+class ItemSubmitAPI(APIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = ItemSerializer
+
+    def post(self, request):
+        serializer = self.serializer_class(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response({'message': 'Item submitted successfully'},
+                            status=status.HTTP_200_OK)
+        else:
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class SubmitExcel(APIView):
+    permission_classes = [IsAuthenticated]
+    parser_classes = [MultiPartParser, FormParser]
+    serializer_class = ExcelFileSerializer
+
+    def post(self, request):
+        file_serializer = self.serializer_class(data=request.data)
+        if file_serializer.is_valid() and request.FILES['file'].name.endswith('.xlsx'):
+            excel_file = request.FILES['file']
+            workbook = openpyxl.load_workbook(excel_file)
+            worksheet = workbook.active
+
+            items_data = []
+            for row in worksheet.iter_rows(
+                min_row=1,
+                max_row=worksheet.max_row,
+                values_only=True
+            ):
+                if row[0] == 'item_id':
+                    continue
+                items_data.append({
+                    'item_id': row[0],
+                    'name': row[1],
+                    'description': row[2],
+                    'quantity': row[3],
+                    'closet_number': row[4] if row[4] in [1, 2] else FIRST_CLOSET,
+                })
+
+            old_items = Item.objects.all()
+            if old_items:
+                old_items.delete()
+
+            for item_data in items_data:
+                item_serializer = ItemSerializer(data=item_data)
+                if item_serializer.is_valid():
+
+                    item_serializer.save()
+                else:
+                    return Response(item_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+            return Response({'message': 'Items submitted successfully'},
+                            status=status.HTTP_200_OK)
+
+        else:
+            return Response({'message': 'File must be an excel file'},
+                            status=status.HTTP_400_BAD_REQUEST)
+
