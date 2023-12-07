@@ -8,8 +8,8 @@ from rest_framework.views import APIView
 
 from .constants import PENDING_COMPLETE_DATA, COMPLETE, FIRST_CLOSET
 from .functions import is_active
-from .models import User, Item
-from .serializers import UserSerializer, CompleteProfileSerializer, ItemSerializer, ExcelFileSerializer
+from .models import User, Item, Task
+from .serializers import UserSerializer, CompleteProfileSerializer, ItemSerializer, ExcelFileSerializer, TaskSerializer
 
 
 class UsersListAPI(APIView):
@@ -171,3 +171,20 @@ class SubmitExcel(APIView):
             return Response({'message': 'File must be an excel file'},
                             status=status.HTTP_400_BAD_REQUEST)
 
+
+class TasksListCreateAPI(generics.ListCreateAPIView):
+    """
+    List of all Tasks.
+    """
+    serializer_class = TaskSerializer
+    queryset = Task.objects.all()
+    filter_backends = [filters.SearchFilter]
+    search_fields = ['title', 'is_done']
+
+
+class TaskDetailAPI(generics.RetrieveUpdateDestroyAPIView):
+    """
+    Delete a Task.
+    """
+    serializer_class = TaskSerializer
+    queryset = Task.objects.all()

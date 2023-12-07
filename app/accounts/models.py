@@ -43,3 +43,17 @@ class Item(models.Model):
         return "Name: {} | Quantity: {} | Closet: {}".format(self.name,
                                                              self.quantity,
                                                              self.closet_number)
+
+
+class Task(models.Model):
+    """
+    Task model that represents a task in the system.
+    """
+    title = models.CharField(max_length=100)
+    is_done = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return "Title: {} | Is done: {}".format(self.title,
+                                                self.is_done)

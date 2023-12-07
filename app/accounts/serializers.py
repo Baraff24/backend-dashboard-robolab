@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from .models import User, Item
+from .models import User, Item, Task
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -23,3 +23,9 @@ class ItemSerializer(serializers.ModelSerializer):
 
 class ExcelFileSerializer(serializers.Serializer):
     file = serializers.FileField()
+
+
+class TaskSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Task
+        fields = ['id', 'title', 'is_done']
